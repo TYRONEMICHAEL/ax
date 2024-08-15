@@ -1,6 +1,9 @@
-import { AI, Generate, type OpenAIArgs } from '../index.js';
+import { AxAI, AxGenerate } from '@ax-llm/ax';
 
-const ai = AI('openai', { apiKey: process.env.OPENAI_APIKEY } as OpenAIArgs);
+const ai = new AxAI({
+  name: 'openai',
+  apiKey: process.env.OPENAI_APIKEY as string
+});
 
 const product = {
   name: 'Acme Toilet Cleaning',
@@ -19,10 +22,11 @@ const messageGuidelines = [
   'Employs emojis and friendly language'
 ];
 
-const gen = new Generate(
+const gen = new AxGenerate(
   ai,
   `productName, productDescription, toName, toDescription, messageGuidelines -> message`
 );
+
 const res = await gen.forward({
   productName: product.name,
   productDescription: product.description,

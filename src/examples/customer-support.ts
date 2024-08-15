@@ -1,9 +1,11 @@
-import { AI, type OpenAIArgs } from '../ai/index.js';
-import { Generate } from '../dsp/generate.js';
+import { AxAI, AxGenerate } from '@ax-llm/ax';
 
-const ai = AI('openai', { apiKey: process.env.OPENAI_APIKEY } as OpenAIArgs);
+const ai = new AxAI({
+  name: 'openai',
+  apiKey: process.env.OPENAI_APIKEY as string
+});
 
-const gen = new Generate(
+const gen = new AxGenerate(
   ai,
   `customerEmail:string  -> productName:string "The name of the product",
 issueDescription:string "A description of the issue",

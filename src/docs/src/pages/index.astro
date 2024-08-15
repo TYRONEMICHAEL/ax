@@ -1,0 +1,36 @@
+---
+// import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Icon } from '@astrojs/starlight/components';
+
+import {
+  BackgroundImage,
+  ImageSupportDetection,
+} from "astro-imagetools/components";
+
+---
+<ImageSupportDetection />
+<BackgroundImage src="/src/assets/mattress.png" 
+backgroundSize="cover" 
+>
+    <div class="backdrop-brightness-90 w-full">
+    <div class="space-y-6 h-[calc(100dvh)] flex flex-col w-full lg:w-8/12 justify-between lg:justify-start py-[100px] px-8">
+        <div>
+            <div class="px-4 font-semibold text-white text-9xl lg:text-8xl">
+                <span class="text-7xl text-lime-400">Meet Ax,</span> <br/>The AI framework for those building the future
+            </div>
+            <div class="flex items-start lg:items-center gap-6 text-7xl lg:text-xl px-4 pt-6">
+                <a href="start/quick/" class="flex items-center justify-between gap-3 py-4 px-5 rounded-full bg-lime-400 hover:bg-lime-500 text-black">
+                    Quick Start <Icon name="right-arrow" size="2rem" />
+                </a>
+                <a href="https://github.com/ax-llm/ax" class="flex items-center justify-between gap-3 py-4 px-5 rounded-full border bg-white/80 hover:bg-white text-black">
+                    <div class="flex items-center gap-2"><Icon name="github" />Code</div>
+                    <Icon name="right-arrow" size="2rem" />
+                </a>
+            </div>
+        </div>
+        <div class="text-white text-7xl lg:text-4xl font-light rounded-xl w-full px-4 lg:w-8/12">
+            Build LLM agents and agentic workflows. Based on the Stanford DSPy paper. Chat, RAG, streaming, multi-modal, and more.
+        </div>
+    </div>
+</div>
+</BackgroundImage>

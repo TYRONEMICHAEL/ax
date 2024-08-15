@@ -1,10 +1,4 @@
-import {
-  AI,
-  type AITextFunction,
-  type OpenAIArgs,
-  ReAct,
-  Signature
-} from '../index.js';
+import { AxAgent, AxAI, type AxFunction, AxSignature } from '@ax-llm/ax';
 
 const choice = Math.round(Math.random());
 
@@ -22,7 +16,7 @@ const badDay = {
   humidity: 70
 };
 
-const WeatherAPI = ({ location }: Readonly<{ location: string }>) => {
+const weatherAPI = ({ location }: Readonly<{ location: string }>) => {
   const data = [
     {
       city: 'san francisco',
@@ -39,7 +33,7 @@ const WeatherAPI = ({ location }: Readonly<{ location: string }>) => {
     .map((v) => v.weather);
 };
 
-const OpentableAPI = ({
+const opentableAPI = ({
   location
 }: Readonly<{
   location: string;
@@ -98,22 +92,21 @@ const OpentableAPI = ({
 };
 
 // List of functions available to the AI
-const functions: AITextFunction[] = [
+const functions: AxFunction[] = [
   {
     name: 'getCurrentWeather',
     description: 'get the current weather for a location',
-    func: WeatherAPI,
+    func: weatherAPI,
     parameters: {
       type: 'object',
       properties: {
         location: {
-          type: 'string',
-          description: 'location to get weather for'
+          description: 'location to get weather for',
+          type: 'string'
         },
         units: {
           type: 'string',
           enum: ['imperial', 'metric'],
-          default: 'imperial',
           description: 'units to use'
         }
       },
@@ -123,17 +116,16 @@ const functions: AITextFunction[] = [
   {
     name: 'findRestaurants',
     description: 'find restaurants in a location',
-    func: OpentableAPI,
+    func: opentableAPI,
     parameters: {
       type: 'object',
       properties: {
         location: {
-          type: 'string',
-          description: 'location to find restaurants in'
+          description: 'location to find restaurants in',
+          type: 'string'
         },
         outdoor: {
           type: 'boolean',
-          default: false,
           description: 'outdoor seating'
         },
         cuisine: { type: 'string', description: 'cuisine type' },
@@ -151,15 +143,45 @@ const functions: AITextFunction[] = [
 const customerQuery =
   "Give me an ideas for lunch today in San Francisco. I like sushi but I don't want to spend too much or other options are fine as well. Also if its a nice day I'd rather sit outside.";
 
-const sig = new Signature(
+const signature = new AxSignature(
   `customerQuery:string  -> restaurant:string, priceRange:string "use $ signs to indicate price range"`
 );
 
-const ai = AI('openai', {
-  apiKey: process.env.OPENAI_APIKEY
-} as OpenAIArgs);
+const ai = new AxAI({
+  name: 'openai',
+  apiKey: process.env.OPENAI_APIKEY as string
+});
 
-const gen = new ReAct(ai, sig, { functions });
-const res = await gen.forward({ customerQuery }, { stream: true });
+// const ai = new AxAI({
+//   name: 'groq',
+//   apiKey: process.env.GROQ_APIKEY as string
+// });
+
+// const ai = new AxAI({
+//   name: 'cohere',
+//   apiKey: process.env.COHERE_APIKEY as string
+// });
+
+// const ai = new AxAI({
+//   name: 'google-gemini',
+//   apiKey: process.env.GOOGLE_APIKEY as string
+// });
+
+// const ai = new AxAI({
+//   name: 'anthropic',
+//   apiKey: process.env.ANTHROPIC_APIKEY as string
+// });
+
+// ai.setOptions({ debug: true });
+
+const gen = new AxAgent(ai, {
+  name: 'food-search',
+  description:
+    'Use this agent to find restaurants based on what the customer wants',
+  signature,
+  functions
+});
+
+const res = await gen.forward({ customerQuery }, { stream: false });
 
 console.log('>', res);

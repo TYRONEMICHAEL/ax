@@ -1,12 +1,20 @@
-import { AI, ChainOfThought, type OpenAIArgs } from '../index.js';
+import { AxAI, AxChainOfThought } from '@ax-llm/ax';
 
-// const ai = AI('openai', { apiKey: process.env.OPENAI_APIKEY } as OpenAIArgs);
-const ai = AI('google-gemini', {
-  apiKey: process.env.GOOGLE_APIKEY
-} as OpenAIArgs);
+const ai = new AxAI({
+  name: 'openai',
+  apiKey: process.env.OPENAI_APIKEY as string
+});
+
+// const ai = new AxAI({
+//     name: 'anthropic'
+//     apiKey: process.env.ANTHROPIC_APIKEY as string
+// });
 
 // setup the prompt program
-const gen = new ChainOfThought(ai, `question:string -> answerInPoints:string`);
+const gen = new AxChainOfThought(
+  ai,
+  `question:string -> answerInPoints:string`
+);
 
 // add a assertion to ensure all lines start with a number and a dot.
 gen.addStreamingAssert(
@@ -15,11 +23,11 @@ gen.addStreamingAssert(
     const re = /^\d+\./;
 
     // split the value by lines, trim each line,
-    // filter out empty lines and check if all lines match the regex
+    // filter out very short lines and check if all lines match the regex
     return value
       .split('\n')
       .map((x) => x.trim())
-      .filter((x) => x.length > 0)
+      .filter((x) => x.length > 4)
       .every((x) => re.test(x));
   },
   'Lines must start with a number and a dot. Eg: 1. This is a line.'
@@ -28,9 +36,9 @@ gen.addStreamingAssert(
 // run the program with streaming enabled
 const res = await gen.forward(
   {
-    question: 'Provide a list of optimizations to speedup LLM inference.'
+    question: 'Provide a list of 3 optimizations to speedup LLM inference.'
   },
-  { stream: true, debug: true }
+  { stream: true }
 );
 
 console.log('>', res);

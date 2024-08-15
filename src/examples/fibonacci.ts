@@ -1,17 +1,18 @@
-import {
-  AI,
-  JSInterpreterFunction,
-  type OpenAIArgs,
-  ReAct,
-  Signature
-} from '../index.js';
+import { AxAI, AxJSInterpreter, AxReAct, AxSignature } from '@ax-llm/ax';
 
-const sig = new Signature(
+const sig = new AxSignature(
   `numberSeriesTask:string  -> fibonacciSeries:number[]`
 );
 
-const ai = AI('openai', { apiKey: process.env.OPENAI_APIKEY } as OpenAIArgs);
-const gen = new ReAct(ai, sig, { functions: [JSInterpreterFunction()] });
+const ai = new AxAI({
+  name: 'openai',
+  apiKey: process.env.OPENAI_APIKEY as string
+});
+
+const gen = new AxReAct(ai, sig, {
+  functions: [new AxJSInterpreter()]
+});
+
 const res = await gen.forward({
   numberSeriesTask: 'Use code to calculate the fibonacci series of 10'
 });

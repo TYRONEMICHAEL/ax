@@ -1,12 +1,17 @@
-import { AI, ChainOfThought, type OpenAIArgs } from '../index.js';
+import { AxAI, AxChainOfThought } from '@ax-llm/ax';
 
-// const ai = AI('openai', { apiKey: process.env.OPENAI_APIKEY } as OpenAIArgs);
-const ai = AI('google-gemini', {
-  apiKey: process.env.GOOGLE_APIKEY
-} as OpenAIArgs);
+// const ai = new AxAI({
+//   name: 'openai',
+//   apiKey: process.env.OPENAI_APIKEY as string
+// });
+
+const ai = new AxAI({
+  name: 'google-gemini',
+  apiKey: process.env.GOOGLE_APIKEY as string
+});
 
 // setup the prompt program
-const gen = new ChainOfThought(
+const gen = new AxChainOfThought(
   ai,
   `startNumber:number -> next10Numbers:number[]`
 );

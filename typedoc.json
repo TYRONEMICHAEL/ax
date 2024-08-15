@@ -1,7 +1,18 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["./src/index.ts"],
-  "json": "./docs/docs.json",
+  "plugin": [
+    "typedoc-plugin-markdown",
+    "typedoc-plugin-frontmatter",
+    "./custom-frontmatter.mjs"
+  ],
+  "entryPoints": ["./src/ax/index.ts"],
+  "out": "./src/docs/src/content/docs/apidocs",
   "pretty": true,
-  "out": "./docs"
+  "mergeReadme": true,
+  "cleanOutputDir": true,
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "useHTMLAnchors": true,
+  "preserveAnchorCasing": false,
+  "readme": "README.md"
 }

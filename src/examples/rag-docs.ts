@@ -1,18 +1,17 @@
-import {
-  AI,
-  ApacheTika,
-  DBManager,
-  MemoryDB,
-  type OpenAIArgs
-} from '../index.js';
+import { AxAI, AxApacheTika, AxDBManager, AxDBMemory } from '@ax-llm/ax';
 
-const ai = AI('openai', { apiKey: process.env.OPENAI_APIKEY } as OpenAIArgs);
-const db = new MemoryDB();
+const ai = new AxAI({
+  name: 'openai',
+  apiKey: process.env.OPENAI_APIKEY as string
+});
 
-const tika = new ApacheTika();
+const db = new AxDBMemory();
+
+const tika = new AxApacheTika();
+
 const text = await tika.convert(['./README.md']);
 
-const manager = new DBManager({ ai, db });
+const manager = new AxDBManager({ ai, db });
 await manager.insert(text, {
   minWordsPerChunk: 50,
   maxWordsPerChunk: 100

@@ -1,0 +1,196 @@
+import type { ReadableStream } from 'stream/web';
+
+import type { AxTracer } from '../trace/index.js';
+
+export type AxAIModelMap = Record<string, string>;
+
+export type AxModelInfo = {
+  name: string;
+  currency?: string;
+  characterIsToken?: boolean;
+  promptTokenCostPer1M?: number;
+  completionTokenCostPer1M?: number;
+  aliases?: string[];
+};
+
+export type AxTokenUsage = {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+};
+
+export type AxModelConfig = {
+  maxTokens?: number;
+  temperature?: number;
+  topP?: number;
+  topK?: number;
+  presencePenalty?: number;
+  frequencyPenalty?: number;
+  stopSequences?: string[];
+  endSequences?: string[];
+  stream?: boolean;
+  n?: number;
+};
+
+export type AxFunctionHandler = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  args?: any,
+  extra?: Readonly<{
+    sessionId?: string;
+    traceId?: string;
+  }>
+) => unknown;
+
+export type AxFunctionJSONSchema = {
+  type: string;
+  properties?: Record<
+    string,
+    AxFunctionJSONSchema & {
+      enum?: string[];
+      description: string;
+    }
+  >;
+  required?: string[];
+  items?: AxFunctionJSONSchema;
+};
+
+export type AxFunction = {
+  name: string;
+  description: string;
+  parameters?: AxFunctionJSONSchema;
+  func: AxFunctionHandler;
+};
+
+export type AxChatResponseResult = {
+  content?: string;
+  name?: string;
+  id?: string;
+  functionCalls?: {
+    id: string;
+    type: 'function';
+    function: { name: string; params?: string | object };
+  }[];
+  finishReason?:
+    | 'stop'
+    | 'length'
+    | 'function_call'
+    | 'content_filter'
+    | 'error';
+};
+
+export type AxChatResponse = {
+  sessionId?: string;
+  remoteId?: string;
+  results: readonly AxChatResponseResult[];
+  modelUsage?: AxTokenUsage;
+  embedModelUsage?: AxTokenUsage;
+};
+
+export type AxEmbedResponse = {
+  remoteId?: string;
+  sessionId?: string;
+  embeddings: readonly (readonly number[])[];
+  modelUsage?: AxTokenUsage;
+};
+
+export type AxModelInfoWithProvider = AxModelInfo & { provider: string };
+
+export type AxChatRequest = {
+  chatPrompt: Readonly<
+    | { role: 'system'; content: string }
+    | {
+        role: 'user';
+        name?: string;
+        content:
+          | string
+          | (
+              | {
+                  type: 'text';
+                  text: string;
+                }
+              | {
+                  type: 'image';
+                  mimeType: string;
+                  image: string;
+                  details?: 'high' | 'low' | 'auto';
+                }
+            )[];
+      }
+    | {
+        role: 'assistant';
+        content?: string;
+        name?: string;
+        functionCalls?: {
+          id: string;
+          type: 'function';
+
+          function: { name: string; params?: string | object };
+        }[];
+      }
+    | { role: 'function'; result: string; functionId: string }
+  >[];
+  functions?: Readonly<{
+    name: string;
+    description: string;
+    parameters?: AxFunctionJSONSchema;
+  }>[];
+  functionCall?:
+    | 'none'
+    | 'auto'
+    | 'required'
+    | { type: 'function'; function: { name: string } };
+  modelConfig?: Readonly<AxModelConfig>;
+  model?: string;
+};
+
+export type AxInternalChatRequest = Omit<AxChatRequest, 'model'> &
+  Required<Pick<AxChatRequest, 'model'>>;
+
+export type AxEmbedRequest = {
+  texts?: readonly string[];
+  embedModel?: string;
+};
+
+export type AxInternalEmbedRequest = Omit<AxEmbedRequest, 'embedModel'> &
+  Required<Pick<AxEmbedRequest, 'embedModel'>>;
+
+export type AxRateLimiterFunction = <T = unknown>(
+  reqFunc: () => Promise<T | ReadableStream<T>>,
+  info: Readonly<{ modelUsage?: AxTokenUsage; embedModelUsage?: AxTokenUsage }>
+) => Promise<T | ReadableStream<T>>;
+
+export type AxAIPromptConfig = {
+  stream?: boolean;
+};
+
+export type AxAIServiceOptions = {
+  debug?: boolean;
+  rateLimiter?: AxRateLimiterFunction;
+  fetch?: typeof fetch;
+  tracer?: AxTracer;
+};
+
+export type AxAIServiceActionOptions = {
+  sessionId?: string;
+  traceId?: string;
+};
+
+export interface AxAIService {
+  getName(): string;
+  getModelInfo(): Readonly<AxModelInfoWithProvider>;
+  getEmbedModelInfo(): Readonly<AxModelInfoWithProvider> | undefined;
+  getModelConfig(): Readonly<AxModelConfig>;
+  getFeatures(): { functions: boolean; streaming: boolean };
+  getModelMap(): AxAIModelMap | undefined;
+
+  chat(
+    req: Readonly<AxChatRequest>,
+    options?: Readonly<AxAIPromptConfig & AxAIServiceActionOptions>
+  ): Promise<AxChatResponse | ReadableStream<AxChatResponse>>;
+  embed(
+    req: Readonly<AxEmbedRequest>,
+    options?: Readonly<AxAIServiceActionOptions & AxAIServiceActionOptions>
+  ): Promise<AxEmbedResponse>;
+
+  setOptions(options: Readonly<AxAIServiceOptions>): void;
+}
